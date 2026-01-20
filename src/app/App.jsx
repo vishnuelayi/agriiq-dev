@@ -1,10 +1,27 @@
-import UserOtpLogin from "../auth/UserOtpLogin";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "../auth/AuthContext";
+import UserRoutes from "../routes/UserRoutes";
+import AdminRoutes from "../routes/AdminRoutes";
+import ProtectedRoute from "../routes/ProtectedRoute";
 
 function App() {
   return (
-    <div className="min-h-screen">
-      <UserOtpLogin />
-    </div>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<UserRoutes />} />
+
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute adminOnly>
+                <AdminRoutes />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 
