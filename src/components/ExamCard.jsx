@@ -1,4 +1,4 @@
-const ExamCard = ({ exam }) => {
+const ExamCard = ({ exam, onBuy }) => {
     return (
       <div className="border rounded p-4 space-y-2">
         <h3 className="text-lg font-semibold">{exam.title}</h3>
@@ -12,10 +12,10 @@ const ExamCard = ({ exam }) => {
         <div className="flex justify-between items-center pt-2">
           <span className="font-semibold">₹{exam.price}</span>
           <button
-            disabled
-            className="bg-gray-300 text-gray-600 px-4 py-1 rounded cursor-not-allowed"
+            onClick={() => onBuy(exam)}
+            className="bg-green-600 text-white px-4 py-1 rounded"
           >
-            Buy (Coming Soon)
+            Buy Exam
           </button>
         </div>
       </div>
@@ -23,4 +23,5 @@ const ExamCard = ({ exam }) => {
   };
   
   export default ExamCard;
+  
   
