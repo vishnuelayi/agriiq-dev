@@ -1,10 +1,6 @@
-# UserRoutes.jsx
+## Routing Logic
+- Unauthenticated users → Login screen
+- Authenticated users → UserDashboard
 
-## Purpose
-Defines user-facing routes.
-
-## Responsibilities
-- Render login or user pages
-
-## Related Files
-- auth/UserOtpLogin.jsx
+## Auth Dependency
+- Uses useAuth() to determine state
