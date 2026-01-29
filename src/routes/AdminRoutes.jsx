@@ -1,6 +1,11 @@
+import PaymentApproval from "../admin/PaymentApproval";
+
 const AdminRoutes = () => {
-    return <div>Admin Dashboard (Coming Soon)</div>;
-  };
-  
-  export default AdminRoutes;
-  
+  return (
+    <div className="p-4">
+      <PaymentApproval />
+    </div>
+  );
+};
+
+export default AdminRoutes;
