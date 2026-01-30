@@ -5,12 +5,16 @@ import useAuth from "../hooks/useAuth";
 import { fetchPublishedExams } from "../services/examService";
 import ExamCard from "../components/ExamCard";
 import PaymentModal from "../components/PaymentModal";
+import { fetchUserExams } from "../services/userExamService";
+
 
 const UserDashboard = () => {
   const { profile, user } = useAuth();
 
   const [exams, setExams] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [unlockedExamIds, setUnlockedExamIds] = useState([]);
+
 
   const [selectedExam, setSelectedExam] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -30,13 +34,30 @@ const UserDashboard = () => {
   };
 
   useEffect(() => {
-    const loadExams = async () => {
-      const data = await fetchPublishedExams();
-      setExams(data);
-      setLoading(false);
+    const loadData = async () => {
+      try {
+        setLoading(true);
+
+        const examsData = await fetchPublishedExams();
+        setExams(examsData);
+
+        if (user) {
+          const unlocked = await fetchUserExams(user.uid);
+          setUnlockedExamIds(unlocked);
+        } else {
+          setUnlockedExamIds([]);
+        }
+      } catch (error) {
+        console.error("Failed to load dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
     };
-    loadExams();
-  }, []);
+
+    loadData();
+  }, [user]);
+
+
 
   return (
     <div className="min-h-screen p-4 space-y-6">
@@ -63,23 +84,43 @@ const UserDashboard = () => {
 
         {!loading && exams.length > 0 && (
           <div className="grid gap-4 md:grid-cols-2">
-            {exams.map((exam) => (
-              <ExamCard
-                key={exam.id}
-                exam={exam}
-                onBuy={handleBuyExam}
-              />
-            ))}
+            {exams
+              .filter((e) => !unlockedExamIds.includes(e.id))
+              .map((exam) => (
+                <ExamCard key={exam.id} exam={exam} onBuy={handleBuyExam} />
+              ))}
+
           </div>
         )}
       </section>
 
       <section>
         <h2 className="text-lg font-semibold mb-2">My Exams</h2>
-        <div className="border p-4 rounded text-gray-500">
-          You have not purchased any exams
-        </div>
+
+        {loading && (
+          <div className="text-gray-500">Loading your exams...</div>
+        )}
+
+        {!loading && unlockedExamIds.length === 0 && (
+          <div className="border p-4 rounded text-gray-500">
+            You haven’t purchased any exams yet.
+          </div>
+        )}
+
+        {!loading &&
+          unlockedExamIds.length > 0 &&
+          exams
+            .filter((e) => unlockedExamIds.includes(e.id))
+            .map((exam) => (
+              <div key={exam.id} className="border p-3 rounded">
+                <h3 className="font-semibold">{exam.title}</h3>
+                <button className="mt-2 bg-blue-600 text-white px-3 py-1 rounded">
+                  Start Exam
+                </button>
+              </div>
+            ))}
       </section>
+
 
       {showPaymentModal && selectedExam && (
         <PaymentModal

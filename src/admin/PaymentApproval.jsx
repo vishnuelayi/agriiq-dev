@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { collection, getDocs, query, where, updateDoc, doc } from "firebase/firestore";
+import { collection, getDocs, query, where, updateDoc, doc, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 
 const PaymentApproval = () => {
@@ -19,10 +19,23 @@ const PaymentApproval = () => {
     loadPayments();
   }, []);
 
-  const updateStatus = async (paymentId, status) => {
-    await updateDoc(doc(db, "payments", paymentId), { status });
-    setPayments((prev) => prev.filter((p) => p.id !== paymentId));
+  const updateStatus = async (payment, status) => {
+    const paymentRef = doc(db, "payments", payment.id);
+
+    await updateDoc(paymentRef, { status });
+
+    if (status === "approved") {
+      await addDoc(collection(db, "userExams"), {
+        userId: payment.userId,
+        examId: payment.examId,
+        status: "unlocked",
+        unlockedAt: serverTimestamp(),
+      });
+    }
+
+    setPayments((prev) => prev.filter((p) => p.id !== payment.id));
   };
+
 
   return (
     <div className="space-y-4">
@@ -41,16 +54,18 @@ const PaymentApproval = () => {
           <div className="flex gap-2">
             <button
               className="bg-green-600 text-white px-3 py-1 rounded"
-              onClick={() => updateStatus(p.id, "approved")}
+              onClick={() => updateStatus(p, "approved")}
             >
               Approve
             </button>
             <button
               className="bg-red-600 text-white px-3 py-1 rounded"
-              onClick={() => updateStatus(p.id, "rejected")}
+              onClick={() => updateStatus(p, "rejected")}
             >
               Reject
             </button>
+
+
           </div>
         </div>
       ))}
