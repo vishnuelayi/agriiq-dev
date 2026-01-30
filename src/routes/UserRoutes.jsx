@@ -3,6 +3,7 @@ import useAuth from "../hooks/useAuth";
 import UserOtpLogin from "../auth/UserOtpLogin";
 import UserDashboard from "../users/UserDashboard";
 import ExamAttempt from "../exam/ExamAttempt";
+import ExamResult from "../exam/ExamResult";
 
 const UserRoutes = () => {
   const { user, loading } = useAuth();
@@ -19,6 +20,7 @@ const UserRoutes = () => {
     <Routes>
       <Route path="/" element={<UserDashboard />} />
       <Route path="/exam/:examId" element={<ExamAttempt />} />
+      <Route path="/results/:examId" element={<ExamResult />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
 

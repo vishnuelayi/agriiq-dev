@@ -105,7 +105,7 @@ const ExamAttempt = () => {
       console.error("Failed to submit attempt:", err);
     }
 
-    navigate("/");
+    navigate(`/results/${examId}`);
   };
 
   /* ---------------- UI ---------------- */
