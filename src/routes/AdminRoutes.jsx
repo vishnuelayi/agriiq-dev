@@ -1,10 +1,15 @@
-import PaymentApproval from "../admin/PaymentApproval";
+import { Routes, Route } from "react-router-dom";
+import AdminDashboard from "../admin/AdminDashboard";
+import CreateExam from "../admin/CreateExam";
+import ManageQuestions from "../admin/ManageQuestions";
 
 const AdminRoutes = () => {
   return (
-    <div className="p-4">
-      <PaymentApproval />
-    </div>
+    <Routes>
+      <Route path="/" element={<AdminDashboard />} />
+      <Route path="/exams/create" element={<CreateExam />} />
+      <Route path="/exams/:examId/questions" element={<ManageQuestions />} />
+    </Routes>
   );
 };
 
