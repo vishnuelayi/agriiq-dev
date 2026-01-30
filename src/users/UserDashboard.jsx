@@ -6,10 +6,14 @@ import { fetchPublishedExams } from "../services/examService";
 import ExamCard from "../components/ExamCard";
 import PaymentModal from "../components/PaymentModal";
 import { fetchUserExams } from "../services/userExamService";
+import { useNavigate } from "react-router-dom";
 
 
 const UserDashboard = () => {
   const { profile, user } = useAuth();
+
+  const navigate = useNavigate();
+
 
   const [exams, setExams] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -114,7 +118,10 @@ const UserDashboard = () => {
             .map((exam) => (
               <div key={exam.id} className="border p-3 rounded">
                 <h3 className="font-semibold">{exam.title}</h3>
-                <button className="mt-2 bg-blue-600 text-white px-3 py-1 rounded">
+                <button
+                  onClick={() => navigate(`/exam/${exam.id}`)}
+                  className="mt-2 bg-blue-600 text-white px-3 py-1 rounded"
+                >
                   Start Exam
                 </button>
               </div>

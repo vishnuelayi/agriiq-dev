@@ -9,10 +9,12 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<UserRoutes />} />
+          {/* USER ROUTES */}
+          <Route path="/*" element={<UserRoutes />} />
 
+          {/* ADMIN ROUTES */}
           <Route
-            path="/admin"
+            path="/admin/*"
             element={
               <ProtectedRoute adminOnly>
                 <AdminRoutes />

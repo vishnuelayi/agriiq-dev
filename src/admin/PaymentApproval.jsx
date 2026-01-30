@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { collection, getDocs, query, where, updateDoc, doc, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, getDocs, query, where, updateDoc, doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 
 const PaymentApproval = () => {
@@ -25,12 +25,15 @@ const PaymentApproval = () => {
     await updateDoc(paymentRef, { status });
 
     if (status === "approved") {
-      await addDoc(collection(db, "userExams"), {
-        userId: payment.userId,
-        examId: payment.examId,
-        status: "unlocked",
-        unlockedAt: serverTimestamp(),
-      });
+      await setDoc(
+        doc(db, "userExams", `${payment.userId}_${payment.examId}`),
+        {
+          userId: payment.userId,
+          examId: payment.examId,
+          status: "unlocked",
+          unlockedAt: serverTimestamp(),
+        }
+      );
     }
 
     setPayments((prev) => prev.filter((p) => p.id !== payment.id));
