@@ -69,11 +69,21 @@ const AdminDashboard = () => {
             <div>Status: {exam.status}</div>
 
             <div className="flex gap-2 flex-wrap">
+
+              {/* MANAGE QUESTIONS BUTTON */}
               <button
                 onClick={() => navigate(`/admin/exams/${exam.id}/questions`)}
                 className="bg-gray-200 px-3 py-1 rounded"
               >
                 Manage Questions
+              </button>
+             
+              {/* PREVIEW BUTTON */}
+              <button
+                onClick={() => navigate(`/admin/exams/${exam.id}/preview`)}
+                className="bg-gray-300 px-3 py-1 rounded"
+              >
+                Preview
               </button>
 
               {exam.status !== "published" && (
