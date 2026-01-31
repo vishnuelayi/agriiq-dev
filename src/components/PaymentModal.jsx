@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
-import { fetchPaymentSettings, createPaymentRequest } from "../services/paymentService";
+import {
+  fetchPaymentSettings,
+  createPaymentRequest,
+} from "../services/paymentService";
 import useAuth from "../hooks/useAuth";
 
 const PaymentModal = ({ exam, onClose }) => {
@@ -21,6 +24,7 @@ const PaymentModal = ({ exam, onClose }) => {
     await createPaymentRequest({
       userId: user.uid,
       examId: exam.id,
+      amount: exam.price,
       transactionId: txnId,
     });
     onClose();
@@ -35,10 +39,10 @@ const PaymentModal = ({ exam, onClose }) => {
         <h3 className="font-semibold">Pay ₹{exam.price}</h3>
 
         <div>
-          <p>UPI ID: <strong>{settings.upiId}</strong></p>
-          {settings.qrCodeUrl && (
-            <img src={settings.qrCodeUrl} alt="QR Code" />
-          )}
+          <p>
+            UPI ID: <strong>{settings.upiId}</strong>
+          </p>
+          {settings.qrCodeUrl && <img src={settings.qrCodeUrl} alt="QR Code" />}
         </div>
 
         <input

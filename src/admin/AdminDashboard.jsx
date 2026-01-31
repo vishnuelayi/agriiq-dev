@@ -63,12 +63,21 @@ const AdminDashboard = () => {
     <div className="p-4 space-y-6">
       <header className="flex justify-between items-center">
         <h1 className="text-xl font-bold">Admin Dashboard</h1>
-        <button
-          onClick={() => navigate("/admin/exams/create")}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          Create Exam
-        </button>
+
+        <div className="flex gap-2">
+          <button
+            onClick={() => navigate("/admin/exams/create")}
+            className="bg-blue-600 text-white px-4 py-2 rounded"
+          >
+            Create Exam
+          </button>
+          <button
+            onClick={() => navigate("/admin/analytics")}
+            className="bg-purple-600 text-white px-4 py-2 rounded"
+          >
+            View Analytics
+          </button>
+        </div>
       </header>
 
       {/* EXAMS SECTION */}
@@ -129,7 +138,7 @@ const AdminDashboard = () => {
                   Archive
                 </button>
               )}
-              
+
               {/* DELETE BUTTON */}
               {exam.status !== "published" && (
                 <button

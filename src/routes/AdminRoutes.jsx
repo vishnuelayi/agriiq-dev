@@ -3,6 +3,7 @@ import AdminDashboard from "../admin/AdminDashboard";
 import CreateExam from "../admin/CreateExam";
 import ManageQuestions from "../admin/ManageQuestions";
 import AdminExamPreview from "../admin/AdminExamPreview";
+import AdminAnalytics from "../admin/AdminAnalytics";
 
 const AdminRoutes = () => {
   return (
@@ -11,6 +12,8 @@ const AdminRoutes = () => {
       <Route path="/exams/create" element={<CreateExam />} />
       <Route path="/exams/:examId/questions" element={<ManageQuestions />} />
       <Route path="/exams/:examId/preview" element={<AdminExamPreview />} />
+      <Route path="/analytics" element={<AdminAnalytics />} />
+
     </Routes>
   );
 };

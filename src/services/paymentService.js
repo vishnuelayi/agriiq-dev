@@ -17,10 +17,12 @@ import {
     userId,
     examId,
     transactionId,
+    amount
   }) => {
     await addDoc(collection(db, "payments"), {
       userId,
       examId,
+      amount,
       transactionId,
       status: "pending",
       createdAt: serverTimestamp(),
