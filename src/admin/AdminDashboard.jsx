@@ -129,7 +129,8 @@ const AdminDashboard = () => {
                   Archive
                 </button>
               )}
-
+              
+              {/* DELETE BUTTON */}
               {exam.status !== "published" && (
                 <button
                   onClick={() => deleteExam(exam.id)}

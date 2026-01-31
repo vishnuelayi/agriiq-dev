@@ -7,18 +7,18 @@ import ExamCard from "../components/ExamCard";
 import PaymentModal from "../components/PaymentModal";
 import { fetchUserExams } from "../services/userExamService";
 import { useNavigate } from "react-router-dom";
-
+import { fetchAttemptCount } from "../services/attemptService";
 
 const UserDashboard = () => {
   const { profile, user } = useAuth();
 
   const navigate = useNavigate();
 
-
   const [exams, setExams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [unlockedExamIds, setUnlockedExamIds] = useState([]);
 
+  const [attemptCounts, setAttemptCounts] = useState({});
 
   const [selectedExam, setSelectedExam] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -51,6 +51,16 @@ const UserDashboard = () => {
         } else {
           setUnlockedExamIds([]);
         }
+
+        if (user) {
+          const counts = {};
+
+          for (const exam of examsData) {
+            counts[exam.id] = await fetchAttemptCount(user.uid, exam.id);
+          }
+
+          setAttemptCounts(counts);
+        }
       } catch (error) {
         console.error("Failed to load dashboard data:", error);
       } finally {
@@ -60,8 +70,6 @@ const UserDashboard = () => {
 
     loadData();
   }, [user]);
-
-
 
   return (
     <div className="min-h-screen p-4 space-y-6">
@@ -93,7 +101,6 @@ const UserDashboard = () => {
               .map((exam) => (
                 <ExamCard key={exam.id} exam={exam} onBuy={handleBuyExam} />
               ))}
-
           </div>
         )}
       </section>
@@ -101,9 +108,7 @@ const UserDashboard = () => {
       <section>
         <h2 className="text-lg font-semibold mb-2">My Exams</h2>
 
-        {loading && (
-          <div className="text-gray-500">Loading your exams...</div>
-        )}
+        {loading && <div className="text-gray-500">Loading your exams...</div>}
 
         {!loading && unlockedExamIds.length === 0 && (
           <div className="border p-4 rounded text-gray-500">
@@ -118,22 +123,24 @@ const UserDashboard = () => {
             .map((exam) => (
               <div key={exam.id} className="border p-3 rounded">
                 <h3 className="font-semibold">{exam.title}</h3>
-                <button
-                  onClick={() => navigate(`/exam/${exam.id}`)}
-                  className="mt-2 bg-blue-600 text-white px-3 py-1 rounded"
-                >
-                  Start Exam
-                </button>
+                {attemptCounts[exam.id] >= (exam.maxReattempts || 1) ? (
+                  <div className="text-red-600 mt-2 text-sm">
+                    Reattempt limit reached
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => navigate(`/exam/${exam.id}`)}
+                    className="mt-2 bg-blue-600 text-white px-3 py-1 rounded"
+                  >
+                    Start Exam
+                  </button>
+                )}
               </div>
             ))}
       </section>
 
-
       {showPaymentModal && selectedExam && (
-        <PaymentModal
-          exam={selectedExam}
-          onClose={closePaymentModal}
-        />
+        <PaymentModal exam={selectedExam} onClose={closePaymentModal} />
       )}
     </div>
   );

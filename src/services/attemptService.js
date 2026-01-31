@@ -7,6 +7,17 @@ import {
     limit,
   } from "firebase/firestore";
   import { db } from "../firebase/firebase";
+
+  export const fetchAttemptCount = async (userId, examId) => {
+    const q = query(
+      collection(db, "attempts"),
+      where("userId", "==", userId),
+      where("examId", "==", examId)
+    );
+  
+    const snap = await getDocs(q);
+    return snap.size;
+  };
   
   export const fetchLatestAttempt = async (userId, examId) => {
     const q = query(

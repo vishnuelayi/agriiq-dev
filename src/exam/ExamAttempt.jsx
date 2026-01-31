@@ -4,6 +4,8 @@ import { fetchExamQuestions } from "../services/questionService";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 import useAuth from "../hooks/useAuth";
+import { fetchAttemptCount } from "../services/attemptService";
+import { doc, getDoc } from "firebase/firestore";
 
 const ExamAttempt = () => {
   const { examId } = useParams();
@@ -15,33 +17,61 @@ const ExamAttempt = () => {
   const [timeLeft, setTimeLeft] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const [exam, setExam] = useState(null);
+
+
   // prevents multiple auto-submits
   const submittedRef = useRef(false);
 
   /* ---------------- LOAD QUESTIONS ---------------- */
   useEffect(() => {
+    if (!user) return;
+  
     const load = async () => {
       try {
+        // 1️⃣ Load exam config
+        const examSnap = await getDoc(doc(db, "exams", examId));
+        if (!examSnap.exists()) {
+          alert("Exam not found");
+          navigate("/");
+          return;
+        }
+  
+        const examData = examSnap.data();
+        setExam(examData);
+  
+        // 2️⃣ Check reattempt count
+        const attemptCount = await fetchAttemptCount(user.uid, examId);
+        const maxReattempts = examData.maxReattempts || 1;
+  
+        if (attemptCount >= maxReattempts) {
+          alert("Reattempt limit reached");
+          navigate("/");
+          return;
+        }
+  
+        // 3️⃣ Load questions
         const qs = await fetchExamQuestions(examId);
-
+  
         if (!qs || qs.length === 0) {
           alert("No questions found for this exam.");
           navigate("/");
           return;
         }
-
+  
         setQuestions(qs);
-        setTimeLeft(qs.length * 60); // 1 min per question
+        setTimeLeft(qs.length * 60);
       } catch (err) {
-        console.error("Failed to load questions:", err);
+        console.error("Failed to load exam:", err);
         navigate("/");
       } finally {
         setLoading(false);
       }
     };
-
+  
     load();
-  }, [examId, navigate]);
+  }, [examId, user, navigate]);
+  
 
   /* ---------------- TIMER ---------------- */
   useEffect(() => {
