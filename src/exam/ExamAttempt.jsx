@@ -14,7 +14,7 @@ import { fetchAttemptCount } from "../services/attemptService";
 import AppLayout from "../layouts/AppLayout";
 import Button from "../ui/Button";
 import { toast } from "sonner";
-import { Timer, CheckCircle } from "lucide-react";
+import { Timer } from "lucide-react";
 
 const ExamAttempt = () => {
   const { examId } = useParams();
@@ -169,20 +169,13 @@ const ExamAttempt = () => {
       {/* Questions */}
       <div className="space-y-6">
         {questions.map((q, index) => {
-          const answered = answers[q.id] !== undefined;
-
           return (
             <div
               key={q.id}
               className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4 animate-fade-in"
             >
-              <div className="flex items-center gap-2 font-semibold text-gray-900">
-                {answered && (
-                  <CheckCircle size={18} className="text-green-600" />
-                )}
-                <span>
-                  {index + 1}. {q.question}
-                </span>
+              <div className="font-semibold text-gray-900">
+                {index + 1}. {q.question}
               </div>
 
               <div className="space-y-2">
