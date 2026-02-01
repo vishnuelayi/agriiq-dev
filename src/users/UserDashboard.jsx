@@ -8,6 +8,9 @@ import PaymentModal from "../components/PaymentModal";
 import { fetchUserExams } from "../services/userExamService";
 import { useNavigate } from "react-router-dom";
 import { fetchAttemptCount } from "../services/attemptService";
+import AppLayout from "../layouts/AppLayout";
+import Card from "../ui/Card";
+import Button from "../ui/Button";
 
 const UserDashboard = () => {
   const { profile, user } = useAuth();
@@ -72,26 +75,24 @@ const UserDashboard = () => {
   }, [user]);
 
   return (
-    <div className="min-h-screen p-4 space-y-6">
-      <header className="flex justify-between items-center">
-        <h1 className="text-xl font-bold">AgriIQ Dashboard</h1>
-        <button
-          onClick={handleLogout}
-          className="bg-red-500 text-white px-4 py-2 rounded"
-        >
+    <AppLayout
+      title="AgriIQ Dashboard"
+      actions={
+        <Button variant="ghost" onClick={handleLogout}>
           Logout
-        </button>
-      </header>
+        </Button>
+      }
+    >
+      {/* AVAILABLE EXAMS */}
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold text-gray-900">Available Exams</h2>
 
-      <section>
-        <h2 className="text-lg font-semibold mb-2">Available Exams</h2>
-
-        {loading && <div className="text-gray-500">Loading exams...</div>}
+        {loading && <p className="text-muted">Loading exams...</p>}
 
         {!loading && exams.length === 0 && (
-          <div className="border p-4 rounded text-gray-500">
-            No exams available
-          </div>
+          <Card>
+            <p className="text-muted">No exams available right now.</p>
+          </Card>
         )}
 
         {!loading && exams.length > 0 && (
@@ -105,7 +106,7 @@ const UserDashboard = () => {
         )}
       </section>
 
-      <section>
+      <section className="space-y-4">
         <h2 className="text-lg font-semibold mb-2">My Exams</h2>
 
         {loading && <div className="text-gray-500">Loading your exams...</div>}
@@ -121,28 +122,20 @@ const UserDashboard = () => {
           exams
             .filter((e) => unlockedExamIds.includes(e.id))
             .map((exam) => (
-              <div key={exam.id} className="border p-3 rounded">
-                <h3 className="font-semibold">{exam.title}</h3>
-                {attemptCounts[exam.id] >= (exam.maxReattempts || 1) ? (
-                  <div className="text-red-600 mt-2 text-sm">
-                    Reattempt limit reached
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => navigate(`/exam/${exam.id}`)}
-                    className="mt-2 bg-blue-600 text-white px-3 py-1 rounded"
-                  >
-                    Start Exam
-                  </button>
-                )}
-              </div>
+              <ExamCard
+                key={exam.id}
+                exam={exam}
+                mode="owned"
+                blocked={attemptCounts[exam.id] >= (exam.maxReattempts || 1)}
+                onStart={() => navigate(`/exam/${exam.id}`)}
+              />
             ))}
       </section>
 
       {showPaymentModal && selectedExam && (
         <PaymentModal exam={selectedExam} onClose={closePaymentModal} />
       )}
-    </div>
+    </AppLayout>
   );
 };
 

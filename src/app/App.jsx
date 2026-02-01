@@ -3,10 +3,14 @@ import { AuthProvider } from "../auth/AuthContext";
 import UserRoutes from "../routes/UserRoutes";
 import AdminRoutes from "../routes/AdminRoutes";
 import ProtectedRoute from "../routes/ProtectedRoute";
+import { Toaster } from "sonner";
 
 function App() {
   return (
     <AuthProvider>
+      {/* ✅ Global toast container */}
+      <Toaster position="top-center" richColors closeButton />
+
       <BrowserRouter>
         <Routes>
           {/* USER ROUTES */}
