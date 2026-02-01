@@ -3,25 +3,36 @@ import { signOut } from "firebase/auth";
 import { auth } from "../firebase/firebase";
 import useAuth from "../hooks/useAuth";
 import { fetchPublishedExams } from "../services/examService";
+import { fetchUserExams } from "../services/userExamService";
+import { fetchAttemptCount } from "../services/attemptService";
 import ExamCard from "../components/ExamCard";
 import PaymentModal from "../components/PaymentModal";
-import { fetchUserExams } from "../services/userExamService";
-import { useNavigate } from "react-router-dom";
-import { fetchAttemptCount } from "../services/attemptService";
 import AppLayout from "../layouts/AppLayout";
 import Card from "../ui/Card";
 import Button from "../ui/Button";
+import { useNavigate } from "react-router-dom";
+import AnnouncementBanner from "../components/AnnouncementBanner";
+
+/* ---------------- SKELETON CARD ---------------- */
+const ExamCardSkeleton = () => (
+  <div className="animate-pulse bg-white rounded-3xl p-6 space-y-4 border border-gray-100">
+    <div className="h-5 bg-gray-200 rounded w-3/4" />
+    <div className="h-4 bg-gray-200 rounded w-1/2" />
+    <div className="flex justify-between items-center mt-6">
+      <div className="h-6 bg-gray-200 rounded w-20" />
+      <div className="h-9 bg-gray-200 rounded w-28" />
+    </div>
+  </div>
+);
 
 const UserDashboard = () => {
-  const { profile, user } = useAuth();
-
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const [exams, setExams] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [unlockedExamIds, setUnlockedExamIds] = useState([]);
-
   const [attemptCounts, setAttemptCounts] = useState({});
+  const [loading, setLoading] = useState(true);
 
   const [selectedExam, setSelectedExam] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -51,21 +62,15 @@ const UserDashboard = () => {
         if (user) {
           const unlocked = await fetchUserExams(user.uid);
           setUnlockedExamIds(unlocked);
-        } else {
-          setUnlockedExamIds([]);
-        }
 
-        if (user) {
           const counts = {};
-
           for (const exam of examsData) {
             counts[exam.id] = await fetchAttemptCount(user.uid, exam.id);
           }
-
           setAttemptCounts(counts);
         }
-      } catch (error) {
-        console.error("Failed to load dashboard data:", error);
+      } catch (err) {
+        console.error("Failed to load dashboard:", err);
       } finally {
         setLoading(false);
       }
@@ -78,62 +83,95 @@ const UserDashboard = () => {
     <AppLayout
       title="AgriIQ Dashboard"
       actions={
-        <Button variant="ghost" onClick={handleLogout}>
+        <Button variant="danger" onClick={handleLogout}>
           Logout
         </Button>
       }
     >
+       <AnnouncementBanner />
       {/* AVAILABLE EXAMS */}
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-900">Available Exams</h2>
+      <section className="space-y-4 mt-4 ">
+        <h2 className="text-lg font-semibold">Available Exams</h2>
 
-        {loading && <p className="text-muted">Loading exams...</p>}
+        {loading && (
+          <div className="grid gap-4 md:grid-cols-2">
+            {[...Array(4)].map((_, i) => (
+              <ExamCardSkeleton key={i} />
+            ))}
+          </div>
+        )}
 
         {!loading && exams.length === 0 && (
           <Card>
-            <p className="text-muted">No exams available right now.</p>
+            <p className="text-gray-500">No exams available right now.</p>
           </Card>
         )}
 
         {!loading && exams.length > 0 && (
           <div className="grid gap-4 md:grid-cols-2">
-            {exams
-              .filter((e) => !unlockedExamIds.includes(e.id))
-              .map((exam) => (
-                <ExamCard key={exam.id} exam={exam} onBuy={handleBuyExam} />
-              ))}
+            {exams.map((exam) => {
+              const purchased = unlockedExamIds.includes(exam.id);
+
+              return (
+                <ExamCard
+                  key={exam.id}
+                  exam={exam}
+                  purchased={purchased}
+                  onBuy={handleBuyExam}
+                />
+              );
+            })}
           </div>
         )}
       </section>
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold mb-2">My Exams</h2>
+      {/* MY EXAMS */}
+      <section className="space-y-4 mt-10">
+        <h2 className="text-lg font-semibold">My Exams</h2>
 
-        {loading && <div className="text-gray-500">Loading your exams...</div>}
+        {loading && (
+          <div className="grid gap-4 md:grid-cols-2">
+            {[...Array(2)].map((_, i) => (
+              <ExamCardSkeleton key={i} />
+            ))}
+          </div>
+        )}
 
         {!loading && unlockedExamIds.length === 0 && (
-          <div className="border p-4 rounded text-gray-500">
-            You haven’t purchased any exams yet.
-          </div>
+          <Card>
+            <p className="text-gray-500">
+              You haven’t purchased any exams yet.
+            </p>
+          </Card>
         )}
 
         {!loading &&
           unlockedExamIds.length > 0 &&
           exams
             .filter((e) => unlockedExamIds.includes(e.id))
-            .map((exam) => (
-              <ExamCard
-                key={exam.id}
-                exam={exam}
-                mode="owned"
-                blocked={attemptCounts[exam.id] >= (exam.maxReattempts || 1)}
-                onStart={() => navigate(`/exam/${exam.id}`)}
-              />
-            ))}
+            .map((exam) => {
+              const used = attemptCounts[exam.id] || 0;
+              const max = exam.maxReattempts || 1;
+              const remaining = Math.max(max - used, 0);
+
+              return (
+                <ExamCard
+                  key={exam.id}
+                  exam={exam}
+                  mode="owned"
+                  remainingAttempts={remaining}
+                  blocked={remaining === 0}
+                  onStart={() => navigate(`/exam/${exam.id}`)}
+                />
+              );
+            })}
       </section>
 
       {showPaymentModal && selectedExam && (
-        <PaymentModal exam={selectedExam} onClose={closePaymentModal} />
+        <PaymentModal
+          exam={selectedExam}
+          onClose={closePaymentModal}
+        />
       )}
     </AppLayout>
   );

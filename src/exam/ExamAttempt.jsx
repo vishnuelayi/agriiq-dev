@@ -1,85 +1,89 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { fetchExamQuestions } from "../services/questionService";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  serverTimestamp,
+  doc,
+  getDoc,
+} from "firebase/firestore";
 import { db } from "../firebase/firebase";
 import useAuth from "../hooks/useAuth";
 import { fetchAttemptCount } from "../services/attemptService";
-import { doc, getDoc } from "firebase/firestore";
+import AppLayout from "../layouts/AppLayout";
+import Button from "../ui/Button";
+import { toast } from "sonner";
+import { Timer, CheckCircle } from "lucide-react";
 
 const ExamAttempt = () => {
   const { examId } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  const [exam, setExam] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({});
   const [timeLeft, setTimeLeft] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const [exam, setExam] = useState(null);
-
-
-  // prevents multiple auto-submits
   const submittedRef = useRef(false);
 
-  /* ---------------- LOAD QUESTIONS ---------------- */
+  /* ---------------- LOAD EXAM + QUESTIONS ---------------- */
   useEffect(() => {
     if (!user) return;
-  
+
     const load = async () => {
       try {
-        // 1️⃣ Load exam config
+        // Load exam config
         const examSnap = await getDoc(doc(db, "exams", examId));
         if (!examSnap.exists()) {
-          alert("Exam not found");
+          toast.error("Exam not found");
           navigate("/");
           return;
         }
-  
+
         const examData = examSnap.data();
         setExam(examData);
-  
-        // 2️⃣ Check reattempt count
+
+        // Reattempt check
         const attemptCount = await fetchAttemptCount(user.uid, examId);
         const maxReattempts = examData.maxReattempts || 1;
-  
+
         if (attemptCount >= maxReattempts) {
-          alert("Reattempt limit reached");
+          toast.error("Reattempt limit reached");
           navigate("/");
           return;
         }
-  
-        // 3️⃣ Load questions
+
+        // Load questions
         const qs = await fetchExamQuestions(examId);
-  
         if (!qs || qs.length === 0) {
-          alert("No questions found for this exam.");
+          toast.error("No questions found for this exam");
           navigate("/");
           return;
         }
-  
+
         setQuestions(qs);
-        setTimeLeft(qs.length * 60);
+        setTimeLeft(qs.length * 60); // 1 min per question
       } catch (err) {
-        console.error("Failed to load exam:", err);
+        console.error(err);
+        toast.error("Failed to load exam");
         navigate("/");
       } finally {
         setLoading(false);
       }
     };
-  
+
     load();
   }, [examId, user, navigate]);
-  
 
   /* ---------------- TIMER ---------------- */
   useEffect(() => {
-    if (timeLeft === null) return;
-    if (submittedRef.current) return;
+    if (timeLeft === null || submittedRef.current) return;
 
     if (timeLeft <= 0) {
-      handleSubmit(true); // auto submit
+      handleSubmit(true);
       return;
     }
 
@@ -101,7 +105,6 @@ const ExamAttempt = () => {
 
     questions.forEach((q) => {
       const ans = answers[q.id];
-
       if (ans === undefined) return;
       if (ans === q.correctOption) score += 1;
       else score -= 1 / 3;
@@ -115,16 +118,12 @@ const ExamAttempt = () => {
     if (submittedRef.current) return;
     submittedRef.current = true;
 
-    if (!user || questions.length === 0) return;
-
-    const score = calculateScore();
-
     try {
       await addDoc(collection(db, "attempts"), {
         userId: user.uid,
         examId,
         answers,
-        score,
+        score: calculateScore(),
         totalQuestions: questions.length,
         durationTaken:
           questions.length * 60 - (timeLeft ?? questions.length * 60),
@@ -132,49 +131,97 @@ const ExamAttempt = () => {
         autoSubmitted: auto,
       });
     } catch (err) {
-      console.error("Failed to submit attempt:", err);
+      console.error(err);
+      toast.error("Failed to submit exam");
     }
 
     navigate(`/results/${examId}`);
   };
 
   /* ---------------- UI ---------------- */
-  if (loading) return <div className="p-4">Loading exam...</div>;
+  if (loading) {
+    return <div className="p-6 text-center text-gray-500">Loading exam…</div>;
+  }
+
+  const isLowTime = timeLeft <= 300; // last 5 minutes
 
   return (
-    <div className="p-4 space-y-4">
-      <div className="font-bold text-lg">
-        Time Left: {Math.floor(timeLeft / 60)}:
-        {String(timeLeft % 60).padStart(2, "0")}
+    <AppLayout
+      title={exam?.title || "Exam"}
+      actions={
+        <div
+          className={`flex items-center gap-2 text-sm font-semibold transition
+            ${isLowTime ? "text-red-600 animate-pulse" : "text-gray-700"}
+          `}
+        >
+          <Timer size={18} />
+          <span>
+            {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, "0")}
+          </span>
+        </div>
+      }
+    >
+      {/* Progress */}
+      <div className="mb-4 text-sm text-gray-500">
+        Answered {Object.keys(answers).length} / {questions.length}
       </div>
 
-      {questions.map((q, index) => (
-        <div key={q.id} className="border p-3 rounded">
-          <div className="font-semibold mb-2">
-            {index + 1}. {q.question}
-          </div>
+      {/* Questions */}
+      <div className="space-y-6">
+        {questions.map((q, index) => {
+          const answered = answers[q.id] !== undefined;
 
-          {q.options.map((opt, i) => (
-            <label key={i} className="block space-x-2">
-              <input
-                type="radio"
-                name={q.id}
-                checked={answers[q.id] === i}
-                onChange={() => handleAnswer(q.id, i)}
-              />
-              <span>{opt}</span>
-            </label>
-          ))}
-        </div>
-      ))}
+          return (
+            <div
+              key={q.id}
+              className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4 animate-fade-in"
+            >
+              <div className="flex items-center gap-2 font-semibold text-gray-900">
+                {answered && (
+                  <CheckCircle size={18} className="text-green-600" />
+                )}
+                <span>
+                  {index + 1}. {q.question}
+                </span>
+              </div>
 
-      <button
-        onClick={() => handleSubmit(false)}
-        className="bg-green-600 text-white px-4 py-2 rounded"
-      >
-        Submit Exam
-      </button>
-    </div>
+              <div className="space-y-2">
+                {q.options.map((opt, i) => {
+                  const selected = answers[q.id] === i;
+
+                  return (
+                    <label
+                      key={i}
+                      className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition
+                        ${
+                          selected
+                            ? "border-green-500 bg-green-50"
+                            : "border-gray-200 hover:bg-gray-50"
+                        }
+                      `}
+                    >
+                      <input
+                        type="radio"
+                        name={q.id}
+                        checked={selected}
+                        onChange={() => handleAnswer(q.id, i)}
+                        className="accent-green-600"
+                      />
+                      <span className="text-sm text-gray-800">{opt}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Submit Bar */}
+      <div className="sticky bottom-0 bg-white border-t mt-8 p-4 flex justify-end">
+        <Button onClick={() => handleSubmit(false)}>Submit Exam</Button>
+      </div>
+    </AppLayout>
   );
 };
 

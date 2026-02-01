@@ -15,7 +15,7 @@ const Button = ({
       ghost:
         "bg-transparent text-[color:var(--color-primary)] hover:bg-green-50",
       danger:
-        "bg-[color:var(--color-danger)] text-white hover:bg-red-700",
+        " bg-[color:var(--color-danger)] text-white hover:bg-red-500",
     };
   
     const disabledStyles =

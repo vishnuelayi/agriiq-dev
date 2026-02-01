@@ -16,6 +16,15 @@ const PaymentModal = ({ exam, onClose }) => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
+  const handleCopyUpi = async () => {
+    try {
+      await navigator.clipboard.writeText(settings.upiId);
+      toast.success("UPI ID copied to clipboard");
+    } catch {
+      toast.error("Failed to copy UPI ID");
+    }
+  };
+
   useEffect(() => {
     const load = async () => {
       const data = await fetchPaymentSettings();
@@ -27,7 +36,7 @@ const PaymentModal = ({ exam, onClose }) => {
 
   const handleSubmit = async () => {
     if (!txnId.trim()) {
-      toast.error("Please enter transaction reference ID");
+      toast.error("Please enter transaction ID or Banking Name");
       return;
     }
 
@@ -63,7 +72,7 @@ const PaymentModal = ({ exam, onClose }) => {
         <div className="space-y-4">
           {/* HEADER */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-[color:var(--color-primary)]">
               Pay ₹{exam.price}
             </h3>
             <p className="text-sm text-muted">
@@ -72,10 +81,19 @@ const PaymentModal = ({ exam, onClose }) => {
           </div>
 
           {/* PAYMENT DETAILS */}
-          <div className="space-y-2">
-            <p className="text-sm">
-              UPI ID: <strong className="select-all">{settings.upiId}</strong>
-            </p>
+          <div className="space-y-3">
+            <div className="flex items-center  gap-2">
+              <p className="text-sm">
+                UPI ID: <strong className="select-all">{settings.upiId}</strong>
+              </p>
+
+              <button
+                onClick={handleCopyUpi}
+                className="text-sm font-medium text-[color:var(--color-primary)] hover:underline active:scale-95 transition"
+              >
+                Copy UPI ID
+              </button>
+            </div>
 
             {settings.qrCodeUrl && (
               <img
@@ -88,8 +106,7 @@ const PaymentModal = ({ exam, onClose }) => {
 
           {/* INPUT */}
           <Input
-            
-            placeholder="Enter UPI transaction ID"
+            placeholder="Enter UPI transaction ID or Banking Name"
             value={txnId}
             onChange={(e) => setTxnId(e.target.value)}
           />
