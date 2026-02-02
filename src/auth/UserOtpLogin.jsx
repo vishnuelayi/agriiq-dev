@@ -122,7 +122,7 @@ const UserOtpLogin = () => {
 
           {/* PHONE INPUT (+91 FIXED) */}
           <div className="flex gap-2 w-full">
-            <div className="w-16 flex items-center justify-center rounded-xl border bg-gray-50 text-sm">
+            <div className="w-16 flex items-center justify-center rounded-xl border border-gray-300 bg-gray-50 text-sm">
               +91
             </div>
 
