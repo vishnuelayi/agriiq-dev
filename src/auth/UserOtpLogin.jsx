@@ -80,7 +80,7 @@ const UserOtpLogin = () => {
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-white flex items-center justify-center px-4">
       <div className="w-full max-w-5xl bg-white rounded-3xl shadow-xl overflow-hidden grid md:grid-cols-2 border border-green-100">
         {/* LEFT — LANDING */}
-        <div className="p-8 md:p-12 flex flex-col justify-center space-y-6">
+        <div className="p-10 md:p-16 flex flex-col justify-center space-y-8 min-h-[520px]">
           <h1 className="text-3xl md:text-4xl font-bold text-primary">
             AgriIQ
           </h1>

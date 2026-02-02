@@ -9,6 +9,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 import PaymentApproval from "./PaymentApproval";
+import AdminLayout from "./AdminLayout";
 
 const AdminDashboard = () => {
   const [exams, setExams] = useState([]);
@@ -60,7 +61,7 @@ const AdminDashboard = () => {
   if (loading) return <div className="p-4">Loading admin dashboard...</div>;
 
   return (
-    <div className="p-4 space-y-6">
+    <AdminLayout title="Dashboard">
       <header className="flex justify-between items-center">
         <h1 className="text-xl font-bold">Admin Dashboard</h1>
 
@@ -157,7 +158,7 @@ const AdminDashboard = () => {
       <section className="space-y-3">
         <PaymentApproval />
       </section>
-    </div>
+    </AdminLayout>
   );
 };
 
