@@ -9,7 +9,7 @@ const AdminExamCard = ({ exam, actions = [] }) => {
           {exam.title}
         </h3>
         <p className="text-xs text-gray-500">
-          ₹{exam.price} • {exam.duration} min
+          ₹{exam.price} • {exam.duration} min • {exam.status}
         </p>
       </div>
 

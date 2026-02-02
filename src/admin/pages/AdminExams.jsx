@@ -1,11 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  collection,
-  getDocs,
-  updateDoc,
-  doc,
-} from "firebase/firestore";
+import { collection, getDocs, updateDoc, doc } from "firebase/firestore";
 import { db } from "../../firebase/firebase";
 
 import AdminLayout from "../AdminLayout";
@@ -70,9 +65,7 @@ const AdminExams = () => {
       {/* ================= PUBLISHED ================= */}
       <Section title="Published Exams">
         {loading &&
-          Array.from({ length: 2 }).map((_, i) => (
-            <SkeletonCard key={i} />
-          ))}
+          Array.from({ length: 2 }).map((_, i) => <SkeletonCard key={i} />)}
 
         {!loading && published.length === 0 && (
           <Empty text="No published exams" />
@@ -86,14 +79,12 @@ const AdminExams = () => {
               actions={[
                 {
                   label: "Manage Questions",
-                  onClick: () =>
-                    navigate(`/admin/exams/${exam.id}/questions`),
+                  onClick: () => navigate(`/admin/exams/${exam.id}/questions`),
                 },
                 {
                   label: "Archive",
                   variant: "danger",
-                  onClick: () =>
-                    updateStatus(exam.id, "archived"),
+                  onClick: () => updateStatus(exam.id, "archived"),
                 },
               ]}
             />
@@ -103,13 +94,9 @@ const AdminExams = () => {
       {/* ================= DRAFTS ================= */}
       <Section title="Draft Exams">
         {loading &&
-          Array.from({ length: 2 }).map((_, i) => (
-            <SkeletonCard key={i} />
-          ))}
+          Array.from({ length: 2 }).map((_, i) => <SkeletonCard key={i} />)}
 
-        {!loading && drafts.length === 0 && (
-          <Empty text="No draft exams" />
-        )}
+        {!loading && drafts.length === 0 && <Empty text="No draft exams" />}
 
         {!loading &&
           drafts.map((exam) => (
@@ -119,13 +106,15 @@ const AdminExams = () => {
               actions={[
                 {
                   label: "Edit",
-                  onClick: () =>
-                    navigate(`/admin/exams/${exam.id}/edit`),
+                  onClick: () => navigate(`/admin/exams/${exam.id}/edit`),
+                },
+                {
+                  label: "Manage Questions",
+                  onClick: () => navigate(`/admin/exams/${exam.id}/questions`),
                 },
                 {
                   label: "Publish",
-                  onClick: () =>
-                    updateStatus(exam.id, "published"),
+                  onClick: () => updateStatus(exam.id, "published"),
                 },
               ]}
             />
@@ -135,9 +124,7 @@ const AdminExams = () => {
       {/* ================= ARCHIVED ================= */}
       <Collapsible title="Archived Exams">
         {loading &&
-          Array.from({ length: 2 }).map((_, i) => (
-            <SkeletonCard key={i} />
-          ))}
+          Array.from({ length: 2 }).map((_, i) => <SkeletonCard key={i} />)}
 
         {!loading &&
           archived.map((exam) => (
@@ -147,8 +134,7 @@ const AdminExams = () => {
               actions={[
                 {
                   label: "Restore",
-                  onClick: () =>
-                    updateStatus(exam.id, "draft"),
+                  onClick: () => updateStatus(exam.id, "draft"),
                 },
               ]}
             />
@@ -164,9 +150,7 @@ export default AdminExams;
 
 const Section = ({ title, children }) => (
   <section className="space-y-3 mb-6">
-    <h2 className="text-sm font-semibold text-gray-700">
-      {title}
-    </h2>
+    <h2 className="text-sm font-semibold text-gray-700">{title}</h2>
     {children}
   </section>
 );

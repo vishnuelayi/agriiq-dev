@@ -1,9 +1,13 @@
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 
 export const fetchExamQuestions = async (examId) => {
-  const ref = collection(db, "questions", examId, "items");
-  const snap = await getDocs(ref);
+  const q = query(
+    collection(db, "questions"),
+    where("examId", "==", examId)
+  );
+
+  const snap = await getDocs(q);
 
   return snap.docs.map((doc) => ({
     id: doc.id,

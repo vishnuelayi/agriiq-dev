@@ -6,7 +6,7 @@ import { Menu, LogOut } from "lucide-react";
 import AdminDrawer from "./AdminDrawer";
 import AdminBottomNav from "./AdminBottomNav";
 
-const AdminLayout = ({ title, children }) => {
+const AdminLayout = ({ title, actions, children }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -17,20 +17,26 @@ const AdminLayout = ({ title, children }) => {
     <div className="min-h-screen bg-gray-50 pb-16">
       {/* TOP BAR */}
       <header className="h-14 bg-white border-b flex items-center justify-between px-4">
+        {/* LEFT */}
         <button onClick={() => setDrawerOpen(true)}>
           <Menu />
         </button>
 
-        <h1 className="text-base font-semibold text-gray-900">
+        {/* CENTER */}
+        <h1 className="text-base font-semibold text-gray-900 truncate">
           {title}
         </h1>
 
-        <button
-          onClick={handleLogout}
-          className="text-red-600"
-        >
-          <LogOut size={18} />
-        </button>
+        {/* RIGHT */}
+        <div className="flex items-center gap-2">
+          {actions}
+          <button
+            onClick={handleLogout}
+            className="text-red-600"
+          >
+            <LogOut size={18} />
+          </button>
+        </div>
       </header>
 
       {/* DRAWER */}
