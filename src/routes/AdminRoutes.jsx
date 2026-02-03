@@ -6,6 +6,7 @@ import CreateExam from "../admin/pages/CreateExam";
 import ManageQuestions from "../admin/pages/ManageQuestions";
 import AdminPayments from "../admin/pages/AdminPayments";
 import EditExam from "../admin/pages/EditExam";
+import AdminUsers from "../admin/pages/AdminUsers";
 
 const AdminRoutes = () => {
   return (
@@ -22,6 +23,8 @@ const AdminRoutes = () => {
       <Route path="/payments" element={<AdminPayments />} />
        
       <Route path="/exams/:examId/edit" element={<EditExam />} />
+      <Route path="/users" element={<AdminUsers />} />
+
     </Routes>
   );
 };
