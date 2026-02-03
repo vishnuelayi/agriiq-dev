@@ -7,13 +7,7 @@ const AdminDrawer = ({ open, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex">
-      {/* BACKDROP */}
-      <div
-        className="flex-1 bg-black/40"
-        onClick={onClose}
-      />
-
-      {/* DRAWER */}
+      {/* DRAWER — FIRST (LEFT SIDE) */}
       <aside className="w-64 bg-white h-full p-4 animate-slide-in-left">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-bold text-primary">
@@ -46,6 +40,12 @@ const AdminDrawer = ({ open, onClose }) => {
           ))}
         </nav>
       </aside>
+
+      {/* BACKDROP — SECOND */}
+      <div
+        className="flex-1 bg-black/40"
+        onClick={onClose}
+      />
     </div>
   );
 };
