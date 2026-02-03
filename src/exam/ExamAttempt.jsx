@@ -35,7 +35,7 @@ const ExamAttempt = () => {
 
     const load = async () => {
       try {
-        // Load exam config
+        // 1️⃣ Load exam
         const examSnap = await getDoc(doc(db, "exams", examId));
         if (!examSnap.exists()) {
           toast.error("Exam not found");
@@ -46,7 +46,7 @@ const ExamAttempt = () => {
         const examData = examSnap.data();
         setExam(examData);
 
-        // Reattempt check
+        // 2️⃣ Reattempt check
         const attemptCount = await fetchAttemptCount(user.uid, examId);
         const maxReattempts = examData.maxReattempts || 1;
 
@@ -56,7 +56,7 @@ const ExamAttempt = () => {
           return;
         }
 
-        // Load questions
+        // 3️⃣ Load questions
         const qs = await fetchExamQuestions(examId);
         if (!qs || qs.length === 0) {
           toast.error("No questions found for this exam");
@@ -65,7 +65,10 @@ const ExamAttempt = () => {
         }
 
         setQuestions(qs);
-        setTimeLeft(qs.length * 60); // 1 min per question
+
+        // ✅ USE EXAM DURATION (minutes → seconds)
+        const durationMinutes = examData.duration || qs.length;
+        setTimeLeft(durationMinutes * 60);
       } catch (err) {
         console.error(err);
         toast.error("Failed to load exam");
@@ -118,6 +121,9 @@ const ExamAttempt = () => {
     if (submittedRef.current) return;
     submittedRef.current = true;
 
+    const totalDuration =
+      (exam?.duration || questions.length) * 60;
+
     try {
       await addDoc(collection(db, "attempts"), {
         userId: user.uid,
@@ -126,7 +132,7 @@ const ExamAttempt = () => {
         score: calculateScore(),
         totalQuestions: questions.length,
         durationTaken:
-          questions.length * 60 - (timeLeft ?? questions.length * 60),
+          totalDuration - (timeLeft ?? totalDuration),
         submittedAt: serverTimestamp(),
         autoSubmitted: auto,
       });
@@ -140,10 +146,14 @@ const ExamAttempt = () => {
 
   /* ---------------- UI ---------------- */
   if (loading) {
-    return <div className="p-6 text-center text-gray-500">Loading exam…</div>;
+    return (
+      <div className="p-6 text-center text-gray-500">
+        Loading exam…
+      </div>
+    );
   }
 
-  const isLowTime = timeLeft <= 300; // last 5 minutes
+  const isLowTime = timeLeft <= 300;
 
   return (
     <AppLayout
@@ -156,63 +166,63 @@ const ExamAttempt = () => {
         >
           <Timer size={18} />
           <span>
-            {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, "0")}
+            {Math.floor(timeLeft / 60)}:
+            {String(timeLeft % 60).padStart(2, "0")}
           </span>
         </div>
       }
     >
-      {/* Progress */}
       <div className="mb-4 text-sm text-gray-500">
         Answered {Object.keys(answers).length} / {questions.length}
       </div>
 
-      {/* Questions */}
       <div className="space-y-6">
-        {questions.map((q, index) => {
-          return (
-            <div
-              key={q.id}
-              className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4 animate-fade-in"
-            >
-              <div className="font-semibold text-gray-900">
-                {index + 1}. {q.question}
-              </div>
-
-              <div className="space-y-2">
-                {q.options.map((opt, i) => {
-                  const selected = answers[q.id] === i;
-
-                  return (
-                    <label
-                      key={i}
-                      className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition
-                        ${
-                          selected
-                            ? "border-green-500 bg-green-50"
-                            : "border-gray-200 hover:bg-gray-50"
-                        }
-                      `}
-                    >
-                      <input
-                        type="radio"
-                        name={q.id}
-                        checked={selected}
-                        onChange={() => handleAnswer(q.id, i)}
-                        className="accent-green-600"
-                      />
-                      <span className="text-sm text-gray-800">{opt}</span>
-                    </label>
-                  );
-                })}
-              </div>
+        {questions.map((q, index) => (
+          <div
+            key={q.id}
+            className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4"
+          >
+            <div className="font-semibold text-gray-900">
+              {index + 1}. {q.question}
             </div>
-          );
-        })}
+
+            <div className="space-y-2">
+              {q.options.map((opt, i) => {
+                const selected = answers[q.id] === i;
+
+                return (
+                  <label
+                    key={i}
+                    className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition
+                      ${
+                        selected
+                          ? "border-green-500 bg-green-50"
+                          : "border-gray-200 hover:bg-gray-50"
+                      }
+                    `}
+                  >
+                    <input
+                      type="radio"
+                      name={q.id}
+                      checked={selected}
+                      onChange={() => handleAnswer(q.id, i)}
+                      className="accent-green-600"
+                    />
+                    <span className="text-sm text-gray-800">
+                      {opt}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* Submit Bar */}
       <div className="sticky bottom-0 bg-white border-t mt-8 p-4 flex justify-end">
-        <Button onClick={() => handleSubmit(false)}>Submit Exam</Button>
+        <Button onClick={() => handleSubmit(false)}>
+          Submit Exam
+        </Button>
       </div>
     </AppLayout>
   );
